@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advanced GitHub Repository Explorer</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --primary-color: #2d333b;
+        --secondary-color: #22272e;
+        --accent-color: #539bf5;
+        --text-primary: #adbac7;
+        --text-secondary: #768390;
+        --success-color: #57ab5a;
+        --warning-color: #c69026;
+        --error-color: #e5534b;
+        --card-bg: #2d333b;
+        --border-color: #444c56;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: var(--secondary-color);
+        color: var(--text-primary);
+        line-height: 1.6;
+        min-height: 100vh;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+        animation: fadeIn 0.5s ease-in-out;
+      }
+
+      .header {
+        text-align: center;
+        padding: 1.5rem 0;
+        background: var(--primary-color);
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .header h1 {
+        font-size: 2rem;
+        color: var(--accent-color);
+        margin-bottom: 1rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .header-stats {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+      }
+
+      .controls {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin: 2rem 0;
+      }
+
+      .select-wrapper {
+        position: relative;
+        flex: 1;
+        max-width: 300px;
+      }
+
+      select {
+        width: 100%;
+        padding: 1rem;
+        background: var(--card-bg);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 1rem;
+        appearance: none;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      select:hover {
+        border-color: var(--accent-color);
+      }
+
+      .select-wrapper::after {
+        content: "▼";
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--accent-color);
+        pointer-events: none;
+      }
+
+      button {
+        padding: 1rem 2rem;
+        background: var(--accent-color);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(83, 155, 245, 0.3);
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        color: var(--accent-color);
+        margin: 2rem 0;
+      }
+
+      .loading-spinner {
+        width: 24px;
+        height: 24px;
+        border: 3px solid var(--accent-color);
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      .error,
+      .warning {
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+        margin: 1rem 0;
+        animation: fadeIn 0.3s ease-in-out;
+      }
+
+      .error {
+        background: rgba(229, 83, 75, 0.1);
+        border: 1px solid var(--error-color);
+        color: var(--error-color);
+      }
+
+      .warning {
+        background: rgba(255, 166, 0, 0.1);
+        border: 1px solid var(--warning-color);
+        color: var(--warning-color);
+      }
+
+      .repository-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 2rem;
+        margin: 2rem auto;
+        width: 500px;
+        max-width: 800px;
+        transform-origin: center;
+        transition: var(--transition);
+      }
+
+      .repository-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      }
+
+      .repo-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .repo-header h2 {
+        color: var(--accent-color);
+        font-size: 1.5rem;
+        word-break: break-word;
+      }
+
+      .repo-header a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .repo-header a:hover {
+        text-decoration: underline;
+      }
+
+      .repo-description {
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+      }
+
+      .repo-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+
+      .stat-item {
+        background: rgba(83, 155, 245, 0.1);
+        padding: 1rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .stat-item i {
+        color: var(--accent-color);
+      }
+
+      .repo-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+      }
+
+      .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-secondary);
+      }
+
+      .cache-info {
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-top: 1rem;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding: 1rem;
+        }
+
+        .controls {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .select-wrapper {
+          max-width: 100%;
+        }
+
+        .repository-card {
+          padding: 1.5rem;
+        }
+
+        .repo-stats {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .header-stats {
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .repo-stats {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (prefers-color-scheme: light) {
+        :root {
+          --primary-color: #ffffff;
+          --secondary-color: #f6f8fa;
+          --text-primary: #24292f;
+          --text-secondary: #57606a;
+          --card-bg: #ffffff;
+          --border-color: #d0d7de;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <h1>
+        <i class="fab fa-github"></i>
+        Advanced GitHub Repository Explorer
+      </h1>
+      <div class="header-stats">
+        <span id="rate-limit-info">Rate Limit: -- / --</span>
+        <span id="cache-status">Cached Languages: 0</span>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="controls">
+        <div class="select-wrapper">
+          <select id="language-select">
+            <option value="">Select a Programming Language</option>
+          </select>
+        </div>
+        <button id="fetch-btn" >
+          <i class="fas fa-search"></i>
+          Fetch Repository
+        </button>
+        <button id="refresh-btn" class="hidden">
+          <i class="fas fa-sync-alt"></i>
+          Fetch Another
+        </button>
+      </div>
+
+      <div id="loading" class="loading hidden">
+        <div class="loading-spinner"></div>
+        <span>Fetching repository...</span>
+      </div>
+
+      <div id="error" class="error hidden"></div>
+      <div id="warning" class="warning hidden"></div>
+
+      <div id="repository-info" class="repository-card hidden">
+        <div class="repo-header">
+          <i class="far fa-bookmark"></i>
+          <h2>
+            <a
+              id="repo-name"
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+            ></a>
+          </h2>
+        </div>
+
+        <p id="repo-description" class="repo-description"></p>
+
+        <div class="repo-stats">
+          <div class="stat-item">
+            <i class="fas fa-star"></i>
+            <span>Stars: </span>
+            <span id="repo-stars"></span>
+          </div>
+
+          <div class="stat-item">
+            <i class="fas fa-code-branch"></i>
+            <span>Forks: </span>
+            <span id="repo-forks"></span>
+          </div>
+
+          <div class="stat-item">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>Issues: </span>
+            <span id="repo-issues"></span>
+          </div>
+
+          <div class="stat-item">
+            <i class="fas fa-eye"></i>
+            <span>Watchers: </span>
+            <span id="repo-watchers"></span>
+          </div>
+        </div>
+
+        <div class="repo-meta">
+          <div class="meta-item">
+            <i class="fas fa-code"></i>
+            <span>Language: </span>
+            <span id="repo-language"></span>
+          </div>
+          <div class="meta-item">
+            <i class="fas fa-calendar"></i>
+            <span>Created: </span>
+            <span id="repo-created"></span>
+          </div>
+          <div class="meta-item">
+            <i class="fas fa-clock"></i>
+            <span>Last Updated: </span>
+            <span id="repo-updated"></span>
+          </div>
+        </div>
+
+        <div id="cache-info" class="cache-info"></div>
+      </div>
+    </main>
+
+    <script src="./src/utils/debounce.js"></script>
+    <script src="./src/utils/formatNumber.js"></script>
+    <script src="./src/utils/rateLimit.js"></script>
+    <script src="./src/config/config.js"></script>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
