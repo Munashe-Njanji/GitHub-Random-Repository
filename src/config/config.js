@@ -1,0 +1,68 @@
+const CONFIG = {
+  PAGE_SIZE: 100,
+  CACHE_DURATION: 5 * 60 * 1000, // 5 minutes
+  MAX_CACHE_SIZE: 50,
+  API_BASE_URL: "https://api.github.com/search/repositories",
+  MAX_RETRIES: 3,
+  RETRY_DELAY: 1000,
+  MIN_STARS: 100,
+  FETCH_TIMEOUT: 10000,
+};
+
+const REQUIRED_ELEMENTS = [
+  "language-select",
+  "fetch-btn",
+  "refresh-btn",
+  "loading",
+  "error",
+  "repository-info",
+  "repo-name",
+  "repo-description",
+  "repo-stars",
+  "repo-forks",
+  "repo-issues",
+];
+const SUPPORTED_LANGUAGES = [
+  "C",
+  "C#",
+  "C++",
+  "CSS",
+  "Dart",
+  "Elixir",
+  "Go",
+  "Groovy",
+  "HTML",
+  "Haskell",
+  "Java",
+  "JavaScript",
+  "Julia",
+  "Kotlin",
+  "Lua",
+  "MATLAB",
+  "Objective-C",
+  "PHP",
+  "Pascal",
+  "Perl",
+  "PowerShell",
+  "Python",
+  "R",
+  "Ruby",
+  "Rust",
+  "SQL",
+  "Scala",
+  "Shell",
+  "Swift",
+  "TypeScript",
+  "Vim script",
+  "Vue",
+].sort();
+
+// Optional: Add metadata for better language handling
+const LANGUAGE_METADATA = {
+  "C#": { searchTerm: "csharp" },
+  "C++": { searchTerm: "cpp" },
+  JavaScript: { fileExtensions: [".js", ".mjs", ".cjs"] },
+  Python: { fileExtensions: [".py", ".pyw", ".pyx"] },
+  TypeScript: { fileExtensions: [".ts", ".tsx"] },
+  Vue: { fileExtensions: [".vue"] },
+};
